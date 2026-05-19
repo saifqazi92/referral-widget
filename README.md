@@ -128,13 +128,21 @@ After deployment, the engineer needs the raw script URL:
 <script src="https://YOUR-PROJECT.pages.dev/referral.js" defer></script>
 ```
 
-Create and bind the D1 database:
+Create the D1 database if it does not exist:
 
 ```bash
 npx wrangler d1 create jelly-referral-widget-events
 ```
 
-Copy the returned `database_id` into `wrangler.toml`, then apply the schema:
+Bind it to the Cloudflare Pages project in the dashboard:
+
+```txt
+Settings -> Functions -> D1 database bindings
+Variable name: DB
+Database: jelly-referral-widget-events
+```
+
+Then apply the schema:
 
 ```bash
 npx wrangler d1 execute jelly-referral-widget-events --remote --file migrations/0001_referral_widget_events.sql
