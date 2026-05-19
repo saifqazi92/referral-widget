@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jelly Referral Widget</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { min-height: 100vh; background: #FFFFFF; }
+  </style>
+  <script>
+    window.__APOLLO_CLIENT__ = {
+      cache: {
+        extract: function () {
+          return {
+            ROOT_QUERY: { viewer: { __ref: "User:1001" }, kitchen: { __ref: "Kitchen:2001" } },
+            "User:1001": { id: 1001, firstName: "Alex", lastName: "Example", email: "alex@example.com", phoneNumberNational: "07700900123" },
+            "Kitchen:2001": { id: 2001, name: "Demo Bistro" }
+          };
+        }
+      }
+    };
+  </script>
+</head>
+<body>
+  <script
+    src="./referral.js"
+    defer
+  ></script>
+</body>
+</html>

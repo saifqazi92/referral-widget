@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env
+.env.*
+
+# Local exploratory artifacts, not part of the publishable widget.
+jelly app html.html
+Reference images/
