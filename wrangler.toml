@@ -1,0 +1,8 @@
+name = "jelly-referral-widget"
+compatibility_date = "2026-05-19"
+pages_build_output_dir = "widget-only-host"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "jelly-referral-widget-events"
+database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"

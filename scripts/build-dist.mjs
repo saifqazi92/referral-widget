@@ -6,6 +6,7 @@ const sourcePaths = [
   path.join(root, 'src', 'copy.js'),
   path.join(root, 'src', 'styles.js'),
   path.join(root, 'src', 'hubspot.js'),
+  path.join(root, 'src', 'tracking.js'),
 ];
 const widgetPath = path.join(root, 'src', 'widget.js');
 const outputPath = path.join(root, 'dist', 'referral.js');

@@ -6,7 +6,7 @@
   "description": "Self-contained referral widget prototype for the Jelly web app.",
   "scripts": {
     "build": "node scripts/build-dist.mjs && node scripts/build-share-previews.mjs",
-    "check": "node --check src/copy.js && node --check src/styles.js && node --check src/hubspot.js && node --check src/widget.js && node --check scripts/build-dist.mjs && node --check scripts/build-share-previews.mjs && node --check dist/referral.js && node --check widget-only-host/referral.js"
+    "check": "node --check src/copy.js && node --check src/styles.js && node --check src/hubspot.js && node --check src/tracking.js && node --check src/widget.js && node --check functions/api/referral-events.js && node --check scripts/build-dist.mjs && node --check scripts/build-share-previews.mjs && node --check dist/referral.js && node --check widget-only-host/referral.js"
   },
   "license": "UNLICENSED"
 }

@@ -16,6 +16,7 @@
     '/settings': true,
   };
   var activeWidgetCleanup = null;
+  var activeWidgetTrackVisible = null;
   var routeListenersInstalled = false;
 
   var SVG_GIFT = [
@@ -200,10 +201,13 @@
         business: '',
       },
       lastSubmitAt: 0,
+      visibleRoutes: {},
       isDestroyed: false,
     };
 
-    setupMobileLauncherReveal(refs);
+    setupMobileLauncherReveal(refs, trackVisibleIfVisible);
+    trackWidgetEvent('referral_widget_loaded');
+    trackVisibleIfVisible();
 
     function handleTriggerClick() {
       if (state.isOpen) {
@@ -264,6 +268,10 @@
       document.removeEventListener('keydown', handleKeydown);
       window.removeEventListener('message', handleMessage);
 
+      if (activeWidgetTrackVisible === trackVisibleIfVisible) {
+        activeWidgetTrackVisible = null;
+      }
+
       if (host.parentNode) {
         host.parentNode.removeChild(host);
       }
@@ -273,11 +281,14 @@
       }
     };
 
+    activeWidgetTrackVisible = trackVisibleIfVisible;
+
     function openDrawer() {
       if (state.isDestroyed) {
         return;
       }
 
+      trackWidgetEvent('referral_widget_opened');
       state.isOpen = true;
       refs.drawer.classList.add('jrw-open');
       refs.overlay.classList.add('jrw-open');
@@ -299,6 +310,7 @@
         return;
       }
 
+      trackWidgetEvent('referral_widget_closed');
       state.isOpen = false;
       refs.drawer.classList.remove('jrw-open');
       refs.overlay.classList.remove('jrw-open');
@@ -327,6 +339,7 @@
       }
 
       refs.trigger.focus();
+      trackVisibleIfVisible();
     }
 
     function loadForm(forceReset, scrollOnReady) {
@@ -369,6 +382,7 @@
             ensureHubSpotStyles();
             refs.formFrame.setAttribute('data-state', 'ready');
             bindFormListeners(0);
+            trackWidgetEvent('referral_widget_form_loaded');
             if (shouldScrollOnReady) {
               scrollToFormCard();
             }
@@ -388,6 +402,7 @@
             state.formRequested = false;
             state.formReady = false;
             refs.formFrame.setAttribute('data-state', 'error');
+            trackWidgetEvent('referral_widget_form_error');
           },
         };
 
@@ -507,6 +522,7 @@
       }
 
       state.successHandled = true;
+      trackWidgetEvent('referral_widget_submitted');
       successTemplate = isMobileViewport() ? JRW_COPY.mobileSuccessBody : JRW_COPY.successBody;
       refs.successBody.textContent = successTemplate
         .replace('{name}', state.lastSubmission.name || 'your contact')
@@ -567,6 +583,31 @@
       window.requestAnimationFrame(function () {
         refs.drawerBody.scrollTop = targetScroll;
       });
+    }
+
+    function trackWidgetEvent(eventName) {
+      if (!hasApolloConfig(config)) {
+        config = resolveApolloConfig();
+      }
+
+      jrwTrackEvent(eventName, config);
+    }
+
+    function trackVisibleIfVisible() {
+      var route;
+
+      if (state.isDestroyed || !isLauncherVisible(refs)) {
+        return;
+      }
+
+      route = getNormalizedPathname();
+
+      if (state.visibleRoutes[route]) {
+        return;
+      }
+
+      state.visibleRoutes[route] = true;
+      trackWidgetEvent('referral_widget_visible');
     }
   }
 
@@ -772,7 +813,7 @@
     );
   }
 
-  function setupMobileLauncherReveal(refs) {
+  function setupMobileLauncherReveal(refs, onVisible) {
     if (!isMobileViewport() || !refs.root) {
       return;
     }
@@ -781,6 +822,10 @@
 
     window.setTimeout(function () {
       refs.root.classList.remove('jrw-mobile-pending');
+
+      if (typeof onVisible === 'function') {
+        onVisible();
+      }
     }, MOBILE_LAUNCHER_DELAY_MS);
   }
 
@@ -869,6 +914,7 @@
 
     if (!isMobileViewport() || isMobileAlwaysVisibleRoute()) {
       root.classList.remove('jrw-session-hidden');
+      trackMountedWidgetVisible();
       return;
     }
 
@@ -876,7 +922,32 @@
       root.classList.add('jrw-session-hidden');
     } else {
       root.classList.remove('jrw-session-hidden');
+      trackMountedWidgetVisible();
     }
+  }
+
+  function trackMountedWidgetVisible() {
+    if (typeof activeWidgetTrackVisible !== 'function') {
+      return;
+    }
+
+    window.setTimeout(activeWidgetTrackVisible, 0);
+  }
+
+  function isLauncherVisible(refs) {
+    if (!refs || !refs.root || !refs.drawer) {
+      return false;
+    }
+
+    if (refs.root.classList.contains('jrw-mobile-pending')) {
+      return false;
+    }
+
+    if (refs.root.classList.contains('jrw-session-hidden')) {
+      return false;
+    }
+
+    return !refs.drawer.classList.contains('jrw-open');
   }
 
   function shouldShowWidgetOnCurrentRoute() {

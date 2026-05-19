@@ -1804,6 +1804,184 @@ function applyHiddenFieldsToPageUrl(hiddenFields) {
     return function noop() {};
   }
 }
+
+// Lightweight analytics client for the referral widget.
+// Sends only funnel metadata to the Cloudflare Pages Function; no PII or form values.
+
+var JRW_WIDGET_VERSION = '2026-05-19-d1-tracking';
+var JRW_TRACKING_SESSION_KEY = 'jrw_tracking_session_id';
+var JRW_TRACKING_ENDPOINT_PATH = '/api/referral-events';
+var JRW_TRACKING_SCRIPT_URL = jrwResolveCurrentScriptUrl();
+var jrwInMemoryTrackingSessionId = '';
+
+var JRW_TRACKING_ALLOWED_EVENTS = {
+  referral_widget_loaded: true,
+  referral_widget_visible: true,
+  referral_widget_opened: true,
+  referral_widget_form_loaded: true,
+  referral_widget_submitted: true,
+  referral_widget_closed: true,
+  referral_widget_form_error: true,
+};
+
+function jrwTrackEvent(eventName, config) {
+  var endpoint;
+  var payload;
+
+  if (!JRW_TRACKING_ALLOWED_EVENTS[eventName]) {
+    return;
+  }
+
+  endpoint = jrwGetTrackingEndpoint();
+
+  if (!endpoint) {
+    return;
+  }
+
+  payload = jrwBuildTrackingPayload(eventName, config || {});
+
+  try {
+    window.fetch(endpoint, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }).catch(function () {});
+  } catch (error) {
+    // Tracking must never block or break the referral flow.
+  }
+}
+
+function jrwBuildTrackingPayload(eventName, config) {
+  return {
+    event_id: jrwCreateTrackingId(),
+    event_name: eventName,
+    session_id: jrwGetTrackingSessionId(),
+    user_id: jrwString(config.userId),
+    kitchen_id: jrwString(config.kitchenId),
+    kitchen_name: jrwString(config.kitchenName),
+    route: jrwGetTrackingRoute(),
+    device: jrwGetTrackingDevice(),
+    viewport_width: jrwGetViewportWidth(),
+    viewport_height: jrwGetViewportHeight(),
+    widget_version: JRW_WIDGET_VERSION,
+    script_url: JRW_TRACKING_SCRIPT_URL,
+    occurred_at: new Date().toISOString(),
+  };
+}
+
+function jrwGetTrackingEndpoint() {
+  var url;
+
+  if (!JRW_TRACKING_SCRIPT_URL) {
+    return '';
+  }
+
+  try {
+    url = new URL(JRW_TRACKING_SCRIPT_URL, window.location.href);
+    url.pathname = JRW_TRACKING_ENDPOINT_PATH;
+    url.search = '';
+    url.hash = '';
+    return url.href;
+  } catch (error) {
+    return '';
+  }
+}
+
+function jrwResolveCurrentScriptUrl() {
+  var script = document.currentScript;
+  var scripts;
+  var index;
+
+  if (script && script.src) {
+    return script.src;
+  }
+
+  scripts = document.getElementsByTagName('script');
+
+  for (index = scripts.length - 1; index >= 0; index -= 1) {
+    if (scripts[index] && /\/referral\.js(?:[?#].*)?$/.test(scripts[index].src || '')) {
+      return scripts[index].src;
+    }
+  }
+
+  return '';
+}
+
+function jrwGetTrackingSessionId() {
+  var existing;
+  var nextId;
+
+  try {
+    existing = window.sessionStorage.getItem(JRW_TRACKING_SESSION_KEY);
+
+    if (existing) {
+      return existing;
+    }
+
+    nextId = jrwCreateTrackingId();
+    window.sessionStorage.setItem(JRW_TRACKING_SESSION_KEY, nextId);
+    return nextId;
+  } catch (error) {
+    if (!jrwInMemoryTrackingSessionId) {
+      jrwInMemoryTrackingSessionId = jrwCreateTrackingId();
+    }
+
+    return jrwInMemoryTrackingSessionId;
+  }
+}
+
+function jrwCreateTrackingId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+
+  return [
+    String(Date.now()),
+    Math.random().toString(16).slice(2),
+    Math.random().toString(16).slice(2),
+  ].join('-');
+}
+
+function jrwGetTrackingRoute() {
+  var pathname = '/';
+
+  if (window.location && window.location.pathname) {
+    pathname = window.location.pathname;
+  }
+
+  pathname = pathname.replace(/\/+$/, '');
+
+  return pathname || '/';
+}
+
+function jrwGetTrackingDevice() {
+  if (window.matchMedia && window.matchMedia('(max-width: 480px)').matches) {
+    return 'mobile';
+  }
+
+  return 'desktop';
+}
+
+function jrwGetViewportWidth() {
+  return window.innerWidth || document.documentElement.clientWidth || 0;
+}
+
+function jrwGetViewportHeight() {
+  return window.innerHeight || document.documentElement.clientHeight || 0;
+}
+
+function jrwString(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return String(value);
+}
 var HOST_ID = 'jrw-widget-host';
   var MOBILE_SUPPRESS_KEY = 'jrw_mobile_launcher_hidden';
   var MOBILE_LAUNCHER_DELAY_MS = 3000;
@@ -1817,6 +1995,7 @@ var HOST_ID = 'jrw-widget-host';
     '/settings': true,
   };
   var activeWidgetCleanup = null;
+  var activeWidgetTrackVisible = null;
   var routeListenersInstalled = false;
 
   var SVG_GIFT = [
@@ -2001,10 +2180,13 @@ var HOST_ID = 'jrw-widget-host';
         business: '',
       },
       lastSubmitAt: 0,
+      visibleRoutes: {},
       isDestroyed: false,
     };
 
-    setupMobileLauncherReveal(refs);
+    setupMobileLauncherReveal(refs, trackVisibleIfVisible);
+    trackWidgetEvent('referral_widget_loaded');
+    trackVisibleIfVisible();
 
     function handleTriggerClick() {
       if (state.isOpen) {
@@ -2065,6 +2247,10 @@ var HOST_ID = 'jrw-widget-host';
       document.removeEventListener('keydown', handleKeydown);
       window.removeEventListener('message', handleMessage);
 
+      if (activeWidgetTrackVisible === trackVisibleIfVisible) {
+        activeWidgetTrackVisible = null;
+      }
+
       if (host.parentNode) {
         host.parentNode.removeChild(host);
       }
@@ -2074,11 +2260,14 @@ var HOST_ID = 'jrw-widget-host';
       }
     };
 
+    activeWidgetTrackVisible = trackVisibleIfVisible;
+
     function openDrawer() {
       if (state.isDestroyed) {
         return;
       }
 
+      trackWidgetEvent('referral_widget_opened');
       state.isOpen = true;
       refs.drawer.classList.add('jrw-open');
       refs.overlay.classList.add('jrw-open');
@@ -2100,6 +2289,7 @@ var HOST_ID = 'jrw-widget-host';
         return;
       }
 
+      trackWidgetEvent('referral_widget_closed');
       state.isOpen = false;
       refs.drawer.classList.remove('jrw-open');
       refs.overlay.classList.remove('jrw-open');
@@ -2128,6 +2318,7 @@ var HOST_ID = 'jrw-widget-host';
       }
 
       refs.trigger.focus();
+      trackVisibleIfVisible();
     }
 
     function loadForm(forceReset, scrollOnReady) {
@@ -2170,6 +2361,7 @@ var HOST_ID = 'jrw-widget-host';
             ensureHubSpotStyles();
             refs.formFrame.setAttribute('data-state', 'ready');
             bindFormListeners(0);
+            trackWidgetEvent('referral_widget_form_loaded');
             if (shouldScrollOnReady) {
               scrollToFormCard();
             }
@@ -2189,6 +2381,7 @@ var HOST_ID = 'jrw-widget-host';
             state.formRequested = false;
             state.formReady = false;
             refs.formFrame.setAttribute('data-state', 'error');
+            trackWidgetEvent('referral_widget_form_error');
           },
         };
 
@@ -2308,6 +2501,7 @@ var HOST_ID = 'jrw-widget-host';
       }
 
       state.successHandled = true;
+      trackWidgetEvent('referral_widget_submitted');
       successTemplate = isMobileViewport() ? JRW_COPY.mobileSuccessBody : JRW_COPY.successBody;
       refs.successBody.textContent = successTemplate
         .replace('{name}', state.lastSubmission.name || 'your contact')
@@ -2368,6 +2562,31 @@ var HOST_ID = 'jrw-widget-host';
       window.requestAnimationFrame(function () {
         refs.drawerBody.scrollTop = targetScroll;
       });
+    }
+
+    function trackWidgetEvent(eventName) {
+      if (!hasApolloConfig(config)) {
+        config = resolveApolloConfig();
+      }
+
+      jrwTrackEvent(eventName, config);
+    }
+
+    function trackVisibleIfVisible() {
+      var route;
+
+      if (state.isDestroyed || !isLauncherVisible(refs)) {
+        return;
+      }
+
+      route = getNormalizedPathname();
+
+      if (state.visibleRoutes[route]) {
+        return;
+      }
+
+      state.visibleRoutes[route] = true;
+      trackWidgetEvent('referral_widget_visible');
     }
   }
 
@@ -2573,7 +2792,7 @@ var HOST_ID = 'jrw-widget-host';
     );
   }
 
-  function setupMobileLauncherReveal(refs) {
+  function setupMobileLauncherReveal(refs, onVisible) {
     if (!isMobileViewport() || !refs.root) {
       return;
     }
@@ -2582,6 +2801,10 @@ var HOST_ID = 'jrw-widget-host';
 
     window.setTimeout(function () {
       refs.root.classList.remove('jrw-mobile-pending');
+
+      if (typeof onVisible === 'function') {
+        onVisible();
+      }
     }, MOBILE_LAUNCHER_DELAY_MS);
   }
 
@@ -2670,6 +2893,7 @@ var HOST_ID = 'jrw-widget-host';
 
     if (!isMobileViewport() || isMobileAlwaysVisibleRoute()) {
       root.classList.remove('jrw-session-hidden');
+      trackMountedWidgetVisible();
       return;
     }
 
@@ -2677,7 +2901,32 @@ var HOST_ID = 'jrw-widget-host';
       root.classList.add('jrw-session-hidden');
     } else {
       root.classList.remove('jrw-session-hidden');
+      trackMountedWidgetVisible();
     }
+  }
+
+  function trackMountedWidgetVisible() {
+    if (typeof activeWidgetTrackVisible !== 'function') {
+      return;
+    }
+
+    window.setTimeout(activeWidgetTrackVisible, 0);
+  }
+
+  function isLauncherVisible(refs) {
+    if (!refs || !refs.root || !refs.drawer) {
+      return false;
+    }
+
+    if (refs.root.classList.contains('jrw-mobile-pending')) {
+      return false;
+    }
+
+    if (refs.root.classList.contains('jrw-session-hidden')) {
+      return false;
+    }
+
+    return !refs.drawer.classList.contains('jrw-open');
   }
 
   function shouldShowWidgetOnCurrentRoute() {
