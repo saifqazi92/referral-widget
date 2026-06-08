@@ -165,10 +165,9 @@
       '  </aside>',
       '  <div class="jrw-launcher">',
       '    <div class="jrw-trigger-wrap">',
-      '      <span class="jrw-icon-label" aria-hidden="true">' + JRW_COPY.iconTooltip + '</span>',
       '      <button class="jrw-icon-btn" type="button" data-ref="trigger" aria-label="' + JRW_COPY.ariaOpenWidget + '" aria-expanded="false">',
       '        ' + SVG_GIFT,
-      '        <span class="jrw-trigger-text">' + JRW_COPY.ariaGiftIcon + '</span>',
+      '        <span class="jrw-trigger-text">' + JRW_COPY.launcherPillText + '</span>',
       '      </button>',
       '    </div>',
       '  </div>',
@@ -213,6 +212,10 @@
       if (state.isOpen) {
         closeDrawer();
         return;
+      }
+
+      if (!isMobileViewport()) {
+        trackWidgetEvent('referral_widget_pill_clicked');
       }
 
       openDrawer();
@@ -608,6 +611,10 @@
 
       state.visibleRoutes[route] = true;
       trackWidgetEvent('referral_widget_visible');
+
+      if (!isMobileViewport()) {
+        trackWidgetEvent('referral_widget_pill_visible');
+      }
     }
   }
 

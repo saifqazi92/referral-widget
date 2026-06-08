@@ -3,6 +3,7 @@
 
 var JRW_COPY = {
   iconTooltip: 'Refer a kitchen, earn \u00a3200',
+  launcherPillText: 'Refer a restaurant, get \u00a3200',
 
   drawerHeading: 'Know another restaurant that should use Jelly?',
   drawerSubheading: 'Refer them and get a <span class="jrw-reward-highlight">\u00a3200 Amazon gift card</span> once they become a paying customer',
