@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jelly Referral Launch Card Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Lato:wght@400;700;800&display=swap">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      font-family: 'Rubik', system-ui, sans-serif;
+      color: #102246;
+      background: #EEF2F7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    .preview-shell {
+      display: flex;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #F7F8FB 0%, #EDF1F6 100%);
+    }
+
+    .sidebar {
+      width: 220px;
+      flex: 0 0 auto;
+      background: #1B2B4B;
+      color: #FFFFFF;
+      padding: 22px 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 8px 28px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: #F5C842;
+      color: #1B2B4B;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .nav-item {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 28px;
+      filter: blur(0.4px);
+    }
+
+    .topbar {
+      height: 56px;
+      margin: -28px -28px 28px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border-bottom: 1px solid #E2E6EF;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: #102246;
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+    }
+
+    .heading {
+      margin: 0 0 4px;
+      font-size: 30px;
+      letter-spacing: -0.04em;
+    }
+
+    .subheading {
+      margin: 0 0 22px;
+      font-family: 'Lato', system-ui, sans-serif;
+      color: #647089;
+      font-size: 15px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card,
+    .content-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E6EF;
+      border-radius: 18px;
+      box-shadow: 0 18px 42px rgba(16, 34, 70, 0.06);
+    }
+
+    .stat-card {
+      padding: 22px;
+      min-height: 120px;
+    }
+
+    .stat-label {
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #647089;
+    }
+
+    .stat-value {
+      margin-top: 10px;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .content-card {
+      padding: 24px;
+      min-height: 270px;
+    }
+
+    .row {
+      height: 44px;
+      border-bottom: 1px solid #EEF2F7;
+    }
+
+    .preview-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: rgba(16, 34, 70, 0.3);
+    }
+
+    .launch-card {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 11;
+      width: min(430px, calc(100vw - 32px));
+      padding: 24px;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 88% 0%, rgba(255, 225, 166, 0.44), transparent 30%),
+        linear-gradient(180deg, #FFFFFF 0%, #FBFCFF 100%);
+      border: 1px solid rgba(226, 230, 239, 0.96);
+      box-shadow: 0 32px 80px rgba(16, 34, 70, 0.28);
+      transform: translate(-50%, -50%);
+    }
+
+    .launch-card-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: #F3F5F8;
+      color: #647089;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .launch-card-close svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: #FFF3D9;
+      color: #102246;
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .launch-title {
+      margin: 16px 38px 10px 0;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.06;
+      letter-spacing: -0.05em;
+    }
+
+    .launch-body {
+      margin: 0;
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #647089;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .primary,
+    .secondary,
+    .reopen {
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      font-family: 'Rubik', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      flex: 1 1 auto;
+      padding: 0 22px;
+      background: linear-gradient(180deg, #132A54 0%, #071A3A 100%);
+      color: #FFFFFF;
+      box-shadow: 0 14px 24px rgba(16, 34, 70, 0.18);
+    }
+
+    .secondary {
+      flex: 0 0 auto;
+      padding: 0 16px;
+      background: #F3F5F8;
+      color: #647089;
+    }
+
+    .reopen {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 9;
+      padding: 0 18px;
+      background: #102246;
+      color: #FFFFFF;
+      box-shadow: 0 16px 32px rgba(27, 43, 75, 0.24);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        overflow: hidden;
+      }
+
+      .preview-shell {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        min-height: 100vh;
+        padding: 18px 14px 120px;
+      }
+
+      .topbar {
+        height: 60px;
+        margin: -18px -14px 18px;
+        padding: 0 14px;
+      }
+
+      .heading {
+        font-size: 22px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat-card {
+        min-height: 92px;
+        padding: 16px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+      }
+
+      .content-card {
+        min-height: 220px;
+      }
+
+      .launch-card {
+        top: auto;
+        left: 10px;
+        right: 10px;
+        bottom: 72px;
+        width: auto;
+        padding: 18px;
+        border-radius: 24px;
+        transform: none;
+      }
+
+      .launch-title {
+        margin: 14px 38px 8px 0;
+        font-size: 24px;
+        line-height: 1.08;
+      }
+
+      .launch-body {
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .actions {
+        margin-top: 16px;
+        gap: 8px;
+      }
+
+      .primary,
+      .secondary {
+        min-height: 44px;
+        font-size: 13px;
+      }
+
+      .secondary {
+        padding: 0 13px;
+      }
+
+      .reopen {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-shell">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-mark">J</span><span>Jelly</span></div>
+      <div class="nav-item active">Dashboard</div>
+      <div class="nav-item">Invoices</div>
+      <div class="nav-item">Recipes</div>
+      <div class="nav-item">Kitchen</div>
+      <div class="nav-item">Settings</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar"><span>Finance</span><span class="avatar">S</span></div>
+      <h1 class="heading">Good morning, Saif</h1>
+      <p class="subheading">Here is what is happening at Angelina's this week.</p>
+
+      <section class="stats">
+        <div class="stat-card"><div class="stat-label">Weekly spend</div><div class="stat-value">£4,218</div></div>
+        <div class="stat-card"><div class="stat-label">Invoices</div><div class="stat-value">14</div></div>
+        <div class="stat-card"><div class="stat-label">Food cost</div><div class="stat-value">28.4%</div></div>
+      </section>
+
+      <section class="content-card">
+        <div class="stat-label">Invoices needing attention</div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="preview-overlay" data-preview-overlay></div>
+
+  <section class="launch-card" data-launch-card aria-labelledby="launch-title" aria-describedby="launch-body">
+    <button class="launch-card-close" type="button" data-close aria-label="Close referral programme announcement">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="1" y1="1" x2="13" y2="13"></line>
+        <line x1="13" y1="1" x2="1" y2="13"></line>
+      </svg>
+    </button>
+    <div class="kicker">Referral programme</div>
+    <h2 class="launch-title" id="launch-title">Earn £200 for referring a restaurant to Jelly</h2>
+    <p class="launch-body" id="launch-body">Know another restaurant that should use Jelly? Send us their details and we’ll handle the follow-up.</p>
+    <div class="actions">
+      <button class="primary" type="button" data-close>Start referral</button>
+      <button class="secondary" type="button" data-close>Maybe later</button>
+    </div>
+  </section>
+
+  <button class="reopen hidden" type="button" data-reopen>Show launch card</button>
+
+  <script>
+    var card = document.querySelector('[data-launch-card]');
+    var overlay = document.querySelector('[data-preview-overlay]');
+    var reopen = document.querySelector('[data-reopen]');
+    var closeButtons = document.querySelectorAll('[data-close]');
+
+    function hideCard() {
+      card.classList.add('hidden');
+      overlay.classList.add('hidden');
+      reopen.classList.remove('hidden');
+    }
+
+    function showCard() {
+      card.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      reopen.classList.add('hidden');
+    }
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener('click', hideCard);
+    });
+
+    overlay.addEventListener('click', hideCard);
+    reopen.addEventListener('click', showCard);
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        hideCard();
+      }
+    });
+  </script>
+</body>
+</html>

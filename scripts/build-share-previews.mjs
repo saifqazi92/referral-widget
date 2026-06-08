@@ -82,6 +82,7 @@ const widgetOnlyReadme = [
   '1. Create a D1 database named jelly-referral-widget-events.',
   '2. Bind it to the Pages project as DB.',
   '3. Apply migrations/0001_referral_widget_events.sql.',
+  '4. Apply migrations/0002_referral_launch_card_state.sql.',
   '',
 ].join('\n');
 

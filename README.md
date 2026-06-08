@@ -12,6 +12,7 @@ The widget renders as a floating gift icon. When opened, it shows referral copy 
 - Other mobile pages: closing the widget hides the launcher for the current `sessionStorage` session.
 - HubSpot form loads lazily when the widget opens.
 - Widget funnel events are sent to a Cloudflare Pages Function backed by D1.
+- A one-time launch popup is suppressed per kitchen through a D1 state table.
 - No custom referral submission backend is used; HubSpot still handles referral submissions.
 - No external JS dependencies are bundled.
 
@@ -49,9 +50,11 @@ src/
 
 functions/
   api/referral-events.js  Cloudflare Pages Function that writes events to D1
+  api/referral-launch-card-state.js  Cloudflare Pages Function for launch popup state
 
 migrations/
   0001_referral_widget_events.sql  D1 schema for raw widget funnel events
+  0002_referral_launch_card_state.sql  D1 schema for one-time popup suppression
 
 scripts/
   build-dist.mjs            Builds dist/referral.js
@@ -104,6 +107,8 @@ Raw `file://.../test.html` paths do not represent the production Jelly route str
 
 ## Widget Funnel Tracking
 
+For the detailed tracking implementation reference, see [TRACKING.md](TRACKING.md).
+
 The widget records these raw events for kitchens that receive the script:
 
 ```txt
@@ -114,6 +119,10 @@ referral_widget_form_loaded
 referral_widget_submitted
 referral_widget_closed
 referral_widget_form_error
+referral_widget_launch_card_shown
+referral_widget_launch_card_cta_clicked
+referral_widget_launch_card_dismissed
+referral_widget_launch_card_state_error
 ```
 
 Each event includes only funnel metadata: event/session IDs, user ID, kitchen ID/name, route path, device, viewport, widget version, script URL, and timestamp. It does not send email, phone number, referee details, form values, or full URLs with query params.
@@ -146,6 +155,7 @@ Then apply the schema:
 
 ```bash
 npx wrangler d1 execute jelly-referral-widget-events --remote --file migrations/0001_referral_widget_events.sql
+npx wrangler d1 execute jelly-referral-widget-events --remote --file migrations/0002_referral_launch_card_state.sql
 ```
 
 Cloudflare Pages settings:
