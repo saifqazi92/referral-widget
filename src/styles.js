@@ -725,6 +725,14 @@ var JRW_STYLES = `
     transition: none;
   }
 }
+
+@media print {
+  :host,
+  .jrw-root {
+    display: none;
+    visibility: hidden;
+  }
+}
 `;
 
 var JRW_HUBSPOT_STYLES = `
@@ -866,5 +874,12 @@ var JRW_HUBSPOT_STYLES = `
 #jrw-widget-host [slot='hubspot'] .submitted-message {
   margin: 0;
   padding: 0;
+}
+
+@media print {
+  #jrw-widget-host {
+    display: none;
+    visibility: hidden;
+  }
 }
 `;
