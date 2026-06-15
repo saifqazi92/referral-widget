@@ -75,6 +75,8 @@ The widget currently records these event names:
 |---|---|
 | `referral_widget_loaded` | Widget mounted successfully with Jelly Apollo user/kitchen context. |
 | `referral_widget_visible` | Launcher was actually visible to the user. |
+| `referral_widget_pill_visible` | Desktop persistent referral pill was visible to the user. |
+| `referral_widget_pill_clicked` | User clicked the desktop persistent referral pill. |
 | `referral_widget_opened` | User clicked or tapped the launcher and opened the widget. |
 | `referral_widget_form_loaded` | HubSpot form rendered successfully. |
 | `referral_widget_submitted` | HubSpot success callback fired after submission. |
@@ -99,7 +101,7 @@ Each event payload includes:
 | `device` | `mobile` when viewport is `max-width: 480px`; otherwise `desktop`. |
 | `viewport_width` | Browser viewport width. |
 | `viewport_height` | Browser viewport height. |
-| `widget_version` | Current code version string, currently `2026-05-19-d1-tracking`. |
+| `widget_version` | Current code version string, currently `2026-06-15-launch-popup-desktop-pill`. |
 | `script_url` | Resolved `referral.js` URL. |
 | `occurred_at` | Client-side ISO timestamp. |
 | `received_at` | Server-side D1 insert timestamp, added by the database. |

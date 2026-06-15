@@ -2,17 +2,18 @@
 
 A lightweight, self-contained referral widget prototype for the Jelly kitchen dashboard.
 
-The widget renders as a floating gift icon. When opened, it shows referral copy and a HubSpot embedded form. Referrer context is read from the Jelly app's Apollo cache and sent to HubSpot hidden fields.
+The widget renders as a persistent desktop referral pill and a compact mobile gift icon. When opened, it shows referral copy and a HubSpot embedded form. Referrer context is read from the Jelly app's Apollo cache and sent to HubSpot hidden fields.
 
 ## Current Behaviour
 
-- Desktop: floating bottom-right launcher with hover label, opening into a right-side drawer.
+- Desktop: persistent bottom-right referral pill, opening into a right-side drawer.
 - Mobile: launcher appears only on `/`, `/finance`, `/kitchen`, and `/settings`.
 - Mobile settings page: launcher remains visible after close, even if the user hid it elsewhere in the same session.
 - Other mobile pages: closing the widget hides the launcher for the current `sessionStorage` session.
 - HubSpot form loads lazily when the widget opens.
 - Widget funnel events are sent to a Cloudflare Pages Function backed by D1.
 - A one-time launch popup is suppressed per kitchen through a D1 state table.
+- The launch popup temporarily hides the launcher; dismissing it restores the persistent launcher.
 - No custom referral submission backend is used; HubSpot still handles referral submissions.
 - No external JS dependencies are bundled.
 
