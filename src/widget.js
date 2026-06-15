@@ -6,7 +6,14 @@
   var HOST_ID = 'jrw-widget-host';
   var MOBILE_SUPPRESS_KEY = 'jrw_mobile_launcher_hidden';
   var MOBILE_LAUNCHER_DELAY_MS = 3000;
+  var LAUNCH_CARD_DELAY_MS = 1500;
   var MOBILE_ALLOWED_PATHS = {
+    '/': true,
+    '/finance': true,
+    '/kitchen': true,
+    '/settings': true,
+  };
+  var LAUNCH_CARD_ALLOWED_PATHS = {
     '/': true,
     '/finance': true,
     '/kitchen': true,
@@ -17,6 +24,7 @@
   };
   var activeWidgetCleanup = null;
   var activeWidgetTrackVisible = null;
+  var activeWidgetRouteSync = null;
   var routeListenersInstalled = false;
 
   var SVG_GIFT = [
@@ -121,6 +129,19 @@
       '<style>' + JRW_STYLES + '</style>',
       '<div class="jrw-root">',
       '  <div class="jrw-overlay" data-ref="overlay"></div>',
+      '  <div class="jrw-launch-card-overlay" data-ref="launchCardOverlay"></div>',
+      '  <section class="jrw-launch-card" data-ref="launchCard" role="dialog" aria-modal="true" aria-labelledby="jrw-launch-card-title" aria-describedby="jrw-launch-card-body" aria-hidden="true">',
+      '    <button class="jrw-launch-card-close" data-ref="launchCardClose" type="button" aria-label="' + JRW_COPY.ariaCloseLaunchCard + '">',
+      '      ' + SVG_CLOSE,
+      '    </button>',
+      '    <div class="jrw-launch-card-kicker">Referral programme</div>',
+      '    <h2 class="jrw-launch-card-title" id="jrw-launch-card-title">' + JRW_COPY.launchCardTitle + '</h2>',
+      '    <p class="jrw-launch-card-body" id="jrw-launch-card-body">' + JRW_COPY.launchCardBody + '</p>',
+      '    <div class="jrw-launch-card-actions">',
+      '      <button class="jrw-launch-card-cta" data-ref="launchCardCta" type="button">' + JRW_COPY.launchCardCta + '</button>',
+      '      <button class="jrw-launch-card-dismiss" data-ref="launchCardDismiss" type="button">' + JRW_COPY.launchCardDismiss + '</button>',
+      '    </div>',
+      '  </section>',
       '  <aside class="jrw-drawer" data-ref="drawer" role="dialog" aria-modal="true" aria-labelledby="jrw-drawer-title">',
       '    <div class="jrw-drawer-panel" data-ref="drawerPanel">',
       '      <div class="jrw-drawer-header">',
@@ -177,6 +198,11 @@
 
     var refs = {
       overlay: shadow.querySelector('[data-ref="overlay"]'),
+      launchCardOverlay: shadow.querySelector('[data-ref="launchCardOverlay"]'),
+      launchCard: shadow.querySelector('[data-ref="launchCard"]'),
+      launchCardClose: shadow.querySelector('[data-ref="launchCardClose"]'),
+      launchCardCta: shadow.querySelector('[data-ref="launchCardCta"]'),
+      launchCardDismiss: shadow.querySelector('[data-ref="launchCardDismiss"]'),
       drawer: shadow.querySelector('[data-ref="drawer"]'),
       drawerPanel: shadow.querySelector('[data-ref="drawerPanel"]'),
       drawerBody: shadow.querySelector('[data-ref="drawerBody"]'),
@@ -202,12 +228,17 @@
       },
       lastSubmitAt: 0,
       visibleRoutes: {},
+      isLaunchCardOpen: false,
+      launchCardChecked: false,
+      launchCardResolved: false,
+      launchCardTimer: 0,
       isDestroyed: false,
     };
 
     setupMobileLauncherReveal(refs, trackVisibleIfVisible);
     trackWidgetEvent('referral_widget_loaded');
     trackVisibleIfVisible();
+    syncLaunchCardForCurrentRoute();
 
     function handleTriggerClick() {
       if (state.isOpen) {
@@ -227,6 +258,11 @@
     }
 
     function handleKeydown(event) {
+      if (state.isLaunchCardOpen && (event.key === 'Escape' || event.key === 'Esc')) {
+        dismissLaunchCard('close');
+        return;
+      }
+
       if (state.isOpen && (event.key === 'Escape' || event.key === 'Esc')) {
         closeDrawer();
       }
@@ -252,6 +288,10 @@
 
     refs.trigger.addEventListener('click', handleTriggerClick);
     refs.overlay.addEventListener('click', closeDrawer);
+    refs.launchCardOverlay.addEventListener('click', handleLaunchCardClose);
+    refs.launchCardClose.addEventListener('click', handleLaunchCardClose);
+    refs.launchCardDismiss.addEventListener('click', handleLaunchCardClose);
+    refs.launchCardCta.addEventListener('click', handleLaunchCardCta);
     refs.closeBtn.addEventListener('click', closeDrawer);
     refs.retryBtn.addEventListener('click', handleRetryClick);
     refs.successBtn.addEventListener('click', handleSuccessClick);
@@ -260,8 +300,13 @@
 
     activeWidgetCleanup = function cleanupMountedWidget() {
       state.isDestroyed = true;
+      clearLaunchCardTimer();
       refs.trigger.removeEventListener('click', handleTriggerClick);
       refs.overlay.removeEventListener('click', closeDrawer);
+      refs.launchCardOverlay.removeEventListener('click', handleLaunchCardClose);
+      refs.launchCardClose.removeEventListener('click', handleLaunchCardClose);
+      refs.launchCardDismiss.removeEventListener('click', handleLaunchCardClose);
+      refs.launchCardCta.removeEventListener('click', handleLaunchCardCta);
       refs.closeBtn.removeEventListener('click', closeDrawer);
       refs.retryBtn.removeEventListener('click', handleRetryClick);
       refs.successBtn.removeEventListener('click', handleSuccessClick);
@@ -270,6 +315,10 @@
 
       if (activeWidgetTrackVisible === trackVisibleIfVisible) {
         activeWidgetTrackVisible = null;
+      }
+
+      if (activeWidgetRouteSync === syncLaunchCardForCurrentRoute) {
+        activeWidgetRouteSync = null;
       }
 
       if (host.parentNode) {
@@ -282,12 +331,23 @@
     };
 
     activeWidgetTrackVisible = trackVisibleIfVisible;
+    activeWidgetRouteSync = syncLaunchCardForCurrentRoute;
+
+    function handleLaunchCardClose() {
+      dismissLaunchCard('close');
+    }
+
+    function handleLaunchCardCta() {
+      dismissLaunchCard('cta');
+      openDrawer();
+    }
 
     function openDrawer() {
       if (state.isDestroyed) {
         return;
       }
 
+      hideLaunchCard(false);
       trackWidgetEvent('referral_widget_opened');
       state.isOpen = true;
       refs.drawer.classList.add('jrw-open');
@@ -340,6 +400,137 @@
 
       refs.trigger.focus();
       trackVisibleIfVisible();
+    }
+
+    function syncLaunchCardForCurrentRoute() {
+      if (state.isDestroyed) {
+        return;
+      }
+
+      if (!isLaunchCardRouteAllowed()) {
+        clearLaunchCardTimer();
+        hideLaunchCard(false);
+        return;
+      }
+
+      scheduleLaunchCardIfEligible();
+    }
+
+    function scheduleLaunchCardIfEligible() {
+      if (
+        state.isDestroyed ||
+        state.launchCardChecked ||
+        state.launchCardResolved ||
+        state.launchCardTimer ||
+        state.isOpen ||
+        !isLaunchCardRouteAllowed()
+      ) {
+        return;
+      }
+
+      if (!hasApolloConfig(config)) {
+        config = resolveApolloConfig();
+      }
+
+      if (!config.kitchenId) {
+        return;
+      }
+
+      state.launchCardChecked = true;
+
+      jrwCheckLaunchCardState(config, function (shouldShow, hasError) {
+        if (state.isDestroyed) {
+          return;
+        }
+
+        if (hasError) {
+          state.launchCardResolved = true;
+          trackWidgetEvent('referral_widget_launch_card_state_error');
+          return;
+        }
+
+        if (!shouldShow) {
+          state.launchCardResolved = true;
+          return;
+        }
+
+        state.launchCardTimer = window.setTimeout(function () {
+          state.launchCardTimer = 0;
+          showLaunchCardIfAllowed();
+        }, LAUNCH_CARD_DELAY_MS);
+      });
+    }
+
+    function showLaunchCardIfAllowed() {
+      if (
+        state.isDestroyed ||
+        state.launchCardResolved ||
+        state.isOpen ||
+        state.isLaunchCardOpen ||
+        !isLaunchCardRouteAllowed()
+      ) {
+        return;
+      }
+
+      state.isLaunchCardOpen = true;
+      state.launchCardResolved = true;
+      refs.root.classList.add('jrw-launch-card-open');
+      refs.launchCard.setAttribute('aria-hidden', 'false');
+      trackWidgetEvent('referral_widget_launch_card_shown');
+
+      window.setTimeout(function () {
+        if (!state.isDestroyed && state.isLaunchCardOpen) {
+          refs.launchCardCta.focus();
+        }
+      }, 120);
+    }
+
+    function dismissLaunchCard(reason) {
+      var normalizedReason = reason === 'cta' ? 'cta' : 'close';
+
+      if (state.isDestroyed || !state.launchCardResolved || !state.isLaunchCardOpen) {
+        return;
+      }
+
+      if (normalizedReason === 'cta') {
+        trackWidgetEvent('referral_widget_launch_card_cta_clicked');
+      } else {
+        trackWidgetEvent('referral_widget_launch_card_dismissed');
+      }
+
+      hideLaunchCard(normalizedReason !== 'cta');
+
+      jrwDismissLaunchCardState(config, normalizedReason, function (hasError) {
+        if (!state.isDestroyed && hasError) {
+          trackWidgetEvent('referral_widget_launch_card_state_error');
+        }
+      });
+    }
+
+    function hideLaunchCard(shouldFocusTrigger) {
+      clearLaunchCardTimer();
+
+      if (!state.isLaunchCardOpen) {
+        return;
+      }
+
+      state.isLaunchCardOpen = false;
+      refs.root.classList.remove('jrw-launch-card-open');
+      refs.launchCard.setAttribute('aria-hidden', 'true');
+
+      if (shouldFocusTrigger && !state.isOpen && !state.isDestroyed) {
+        refs.trigger.focus();
+        trackVisibleIfVisible();
+      }
+    }
+
+    function clearLaunchCardTimer() {
+      if (!state.launchCardTimer) {
+        return;
+      }
+
+      window.clearTimeout(state.launchCardTimer);
+      state.launchCardTimer = 0;
     }
 
     function loadForm(forceReset, scrollOnReady) {
@@ -915,6 +1106,9 @@
     if (!isMobileViewport() || isMobileAlwaysVisibleRoute()) {
       root.classList.remove('jrw-session-hidden');
       trackMountedWidgetVisible();
+      if (typeof activeWidgetRouteSync === 'function') {
+        activeWidgetRouteSync();
+      }
       return;
     }
 
@@ -923,6 +1117,10 @@
     } else {
       root.classList.remove('jrw-session-hidden');
       trackMountedWidgetVisible();
+    }
+
+    if (typeof activeWidgetRouteSync === 'function') {
+      activeWidgetRouteSync();
     }
   }
 
@@ -947,6 +1145,10 @@
       return false;
     }
 
+    if (refs.root.classList.contains('jrw-launch-card-open')) {
+      return false;
+    }
+
     return !refs.drawer.classList.contains('jrw-open');
   }
 
@@ -960,6 +1162,10 @@
 
   function isMobileRouteAllowed() {
     return !!MOBILE_ALLOWED_PATHS[getNormalizedPathname()];
+  }
+
+  function isLaunchCardRouteAllowed() {
+    return !!LAUNCH_CARD_ALLOWED_PATHS[getNormalizedPathname()];
   }
 
   function isMobileAlwaysVisibleRoute() {

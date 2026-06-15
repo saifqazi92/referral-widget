@@ -9,6 +9,11 @@ var JRW_COPY = {
   rewardDetailHeading: 'You make the intro.',
   rewardDetailBody: 'We handle the follow-up.',
 
+  launchCardTitle: 'Earn \u00a3200 for referring a restaurant to Jelly',
+  launchCardBody: 'Know another restaurant that should use Jelly? Send us their details and we\u2019ll handle the follow-up.',
+  launchCardCta: 'Start referral',
+  launchCardDismiss: 'Maybe later',
+
   fieldRefereeNamePlaceholder: 'e.g. Alex Smith',
   fieldRefereeBusinessPlaceholder: 'e.g. The Green House',
   fieldRefereeEmailPlaceholder: 'e.g. alex@greenhouse.com',
@@ -30,5 +35,6 @@ var JRW_COPY = {
 
   ariaOpenWidget: 'Open referral programme',
   ariaCloseDrawer: 'Close referral drawer',
+  ariaCloseLaunchCard: 'Close referral programme announcement',
   ariaGiftIcon: 'Refer a kitchen',
 };

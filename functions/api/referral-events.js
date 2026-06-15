@@ -8,6 +8,10 @@ const ALLOWED_EVENTS = new Set([
   'referral_widget_submitted',
   'referral_widget_closed',
   'referral_widget_form_error',
+  'referral_widget_launch_card_shown',
+  'referral_widget_launch_card_cta_clicked',
+  'referral_widget_launch_card_dismissed',
+  'referral_widget_launch_card_state_error',
 ]);
 
 const REQUIRED_FIELDS = [
