@@ -258,8 +258,10 @@ var JRW_STYLES = `
 
 .jrw-icon-btn {
   position: relative;
-  width: 58px;
-  height: 58px;
+  width: auto;
+  min-width: 0;
+  height: 52px;
+  padding: 0 18px 0 16px;
   border: 0;
   border-radius: 999px;
   background: var(--jrw-primary);
@@ -268,7 +270,13 @@ var JRW_STYLES = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   box-shadow: var(--jrw-shadow-icon);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
   transition: transform 160ms ease, background 200ms ease, box-shadow 200ms ease;
   animation: jrw-bounce 420ms ease-in-out 500ms both;
 }
@@ -276,26 +284,29 @@ var JRW_STYLES = `
 .jrw-icon-btn:hover,
 .jrw-icon-btn:focus-visible {
   background: var(--jrw-primary-hover);
-  transform: translateY(-1px) scale(1.04);
+  transform: translateY(-1px);
   box-shadow: 0 22px 38px rgba(27, 43, 75, 0.3);
   outline: none;
 }
 
 .jrw-icon-btn:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.98);
 }
 
 .jrw-icon-btn svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: block;
+  flex: 0 0 auto;
 }
 
 .jrw-trigger-text {
-  display: none;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .jrw-icon-label {
+  display: none;
   position: absolute;
   right: 72px;
   top: 50%;
@@ -827,8 +838,10 @@ var JRW_STYLES = `
     height: 46px;
     min-height: 0;
     padding: 0;
+    gap: 0;
     border-radius: 999px;
     box-shadow: 0 10px 22px rgba(27, 43, 75, 0.18);
+    font-size: 0;
     animation: none;
   }
 

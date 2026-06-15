@@ -114,6 +114,8 @@ The widget records these raw events for kitchens that receive the script:
 ```txt
 referral_widget_loaded
 referral_widget_visible
+referral_widget_pill_visible
+referral_widget_pill_clicked
 referral_widget_opened
 referral_widget_form_loaded
 referral_widget_submitted

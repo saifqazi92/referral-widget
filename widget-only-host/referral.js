@@ -19,6 +19,7 @@
 
 var JRW_COPY = {
   iconTooltip: 'Refer a kitchen, earn \u00a3200',
+  launcherPillText: 'Refer a restaurant, get \u00a3200',
 
   drawerHeading: 'Know another restaurant that should use Jelly?',
   drawerSubheading: 'Refer them and get a <span class="jrw-reward-highlight">\u00a3200 Amazon gift card</span> once they become a paying customer',
@@ -315,8 +316,10 @@ var JRW_STYLES = `
 
 .jrw-icon-btn {
   position: relative;
-  width: 58px;
-  height: 58px;
+  width: auto;
+  min-width: 0;
+  height: 52px;
+  padding: 0 18px 0 16px;
   border: 0;
   border-radius: 999px;
   background: var(--jrw-primary);
@@ -325,7 +328,13 @@ var JRW_STYLES = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   box-shadow: var(--jrw-shadow-icon);
+  font-family: 'Rubik', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
   transition: transform 160ms ease, background 200ms ease, box-shadow 200ms ease;
   animation: jrw-bounce 420ms ease-in-out 500ms both;
 }
@@ -333,26 +342,29 @@ var JRW_STYLES = `
 .jrw-icon-btn:hover,
 .jrw-icon-btn:focus-visible {
   background: var(--jrw-primary-hover);
-  transform: translateY(-1px) scale(1.04);
+  transform: translateY(-1px);
   box-shadow: 0 22px 38px rgba(27, 43, 75, 0.3);
   outline: none;
 }
 
 .jrw-icon-btn:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.98);
 }
 
 .jrw-icon-btn svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: block;
+  flex: 0 0 auto;
 }
 
 .jrw-trigger-text {
-  display: none;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .jrw-icon-label {
+  display: none;
   position: absolute;
   right: 72px;
   top: 50%;
@@ -884,8 +896,10 @@ var JRW_STYLES = `
     height: 46px;
     min-height: 0;
     padding: 0;
+    gap: 0;
     border-radius: 999px;
     box-shadow: 0 10px 22px rgba(27, 43, 75, 0.18);
+    font-size: 0;
     animation: none;
   }
 
@@ -1597,7 +1611,7 @@ function applyHiddenFieldsToPageUrl(hiddenFields) {
 // Lightweight analytics client for the referral widget.
 // Sends only funnel metadata to the Cloudflare Pages Function; no PII or form values.
 
-var JRW_WIDGET_VERSION = '2026-05-19-d1-tracking';
+var JRW_WIDGET_VERSION = '2026-06-08-desktop-pill';
 var JRW_TRACKING_SESSION_KEY = 'jrw_tracking_session_id';
 var JRW_TRACKING_ENDPOINT_PATH = '/api/referral-events';
 var JRW_LAUNCH_CARD_ENDPOINT_PATH = '/api/referral-launch-card-state';
@@ -1607,6 +1621,8 @@ var jrwInMemoryTrackingSessionId = '';
 var JRW_TRACKING_ALLOWED_EVENTS = {
   referral_widget_loaded: true,
   referral_widget_visible: true,
+  referral_widget_pill_visible: true,
+  referral_widget_pill_clicked: true,
   referral_widget_opened: true,
   referral_widget_form_loaded: true,
   referral_widget_submitted: true,
@@ -2053,10 +2069,9 @@ var HOST_ID = 'jrw-widget-host';
       '  </aside>',
       '  <div class="jrw-launcher">',
       '    <div class="jrw-trigger-wrap">',
-      '      <span class="jrw-icon-label" aria-hidden="true">' + JRW_COPY.iconTooltip + '</span>',
       '      <button class="jrw-icon-btn" type="button" data-ref="trigger" aria-label="' + JRW_COPY.ariaOpenWidget + '" aria-expanded="false">',
       '        ' + SVG_GIFT,
-      '        <span class="jrw-trigger-text">' + JRW_COPY.ariaGiftIcon + '</span>',
+      '        <span class="jrw-trigger-text">' + JRW_COPY.launcherPillText + '</span>',
       '      </button>',
       '    </div>',
       '  </div>',
@@ -2111,6 +2126,10 @@ var HOST_ID = 'jrw-widget-host';
       if (state.isOpen) {
         closeDrawer();
         return;
+      }
+
+      if (!isMobileViewport()) {
+        trackWidgetEvent('referral_widget_pill_clicked');
       }
 
       openDrawer();
@@ -2666,6 +2685,10 @@ var HOST_ID = 'jrw-widget-host';
 
       state.visibleRoutes[route] = true;
       trackWidgetEvent('referral_widget_visible');
+
+      if (!isMobileViewport()) {
+        trackWidgetEvent('referral_widget_pill_visible');
+      }
     }
   }
 

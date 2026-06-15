@@ -3,6 +3,8 @@ const MAX_BODY_BYTES = 4096;
 const ALLOWED_EVENTS = new Set([
   'referral_widget_loaded',
   'referral_widget_visible',
+  'referral_widget_pill_visible',
+  'referral_widget_pill_clicked',
   'referral_widget_opened',
   'referral_widget_form_loaded',
   'referral_widget_submitted',
