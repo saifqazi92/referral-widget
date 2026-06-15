@@ -152,7 +152,10 @@ Bind it to the Cloudflare Pages project in the dashboard:
 Settings -> Functions -> D1 database bindings
 Variable name: DB
 Database: jelly-referral-widget-events
+Environment: configure the same binding for both Preview and Production
 ```
+
+Branch previews fail closed and do not show the launch popup when the Preview environment is missing the `DB` binding.
 
 Then apply the schema:
 

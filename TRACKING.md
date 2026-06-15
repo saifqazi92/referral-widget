@@ -536,7 +536,10 @@ Fix:
 3. Add a D1 database binding.
 4. Set variable name to `DB`.
 5. Select `jelly-referral-widget-events`.
-6. Redeploy.
+6. Configure the binding for both Preview and Production environments.
+7. Redeploy.
+
+If only Production has the binding, branch-preview Functions return this error and the launch popup correctly fails closed.
 
 ### `Invalid database UUID (REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID)`
 
