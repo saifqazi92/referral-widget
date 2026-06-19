@@ -4,7 +4,9 @@
 
 (function () {
   var HOST_ID = 'jrw-widget-host';
-  var MOBILE_SUPPRESS_KEY = 'jrw_mobile_launcher_hidden';
+  // Keep the existing storage key so active mobile sessions remain suppressed after deployment.
+  var LAUNCHER_SUPPRESS_KEY = 'jrw_mobile_launcher_hidden';
+  var MOBILE_MEDIA_QUERY = '(max-width: 768px)';
   var MOBILE_LAUNCHER_DELAY_MS = 3000;
   var LAUNCH_CARD_DELAY_MS = 1500;
   var MOBILE_ALLOWED_PATHS = {
@@ -17,9 +19,6 @@
     '/': true,
     '/finance': true,
     '/kitchen': true,
-    '/settings': true,
-  };
-  var MOBILE_ALWAYS_VISIBLE_PATHS = {
     '/settings': true,
   };
   var activeWidgetCleanup = null;
@@ -100,7 +99,7 @@
         return;
       }
 
-      if (isMobileViewport() && isMobileLauncherSuppressed() && !isMobileAlwaysVisibleRoute()) {
+      if (isLauncherSuppressed()) {
         return;
       }
 
@@ -367,7 +366,6 @@
 
     function closeDrawer() {
       var shouldResetSubmittedForm = refs.drawerPanel.classList.contains('jrw-submitted');
-      var shouldSuppressMobileLauncher = isMobileViewport() && !isMobileAlwaysVisibleRoute();
 
       if (state.isDestroyed) {
         return;
@@ -395,14 +393,7 @@
       }
 
       scrollDrawerToTop();
-
-      if (shouldSuppressMobileLauncher) {
-        suppressMobileLauncher(refs);
-        return;
-      }
-
-      refs.trigger.focus();
-      trackVisibleIfVisible();
+      suppressLauncher(refs);
     }
 
     function syncLaunchCardForCurrentRoute() {
@@ -501,7 +492,11 @@
         trackWidgetEvent('referral_widget_launch_card_dismissed');
       }
 
-      hideLaunchCard(normalizedReason !== 'cta');
+      hideLaunchCard(false);
+
+      if (normalizedReason !== 'cta') {
+        suppressLauncher(refs);
+      }
 
       jrwDismissLaunchCardState(config, normalizedReason, function (hasError) {
         if (!state.isDestroyed && hasError) {
@@ -722,7 +717,7 @@
         .replace('{name}', state.lastSubmission.name || 'your contact')
         .replace('{business}', state.lastSubmission.business || 'their business');
       refs.drawerPanel.classList.add('jrw-submitted');
-      suppressMobileLauncherForSession();
+      suppressLauncherForSession();
       refs.successBtn.focus();
     }
 
@@ -1027,25 +1022,25 @@
     }, MOBILE_LAUNCHER_DELAY_MS);
   }
 
-  function suppressMobileLauncher(refs) {
-    suppressMobileLauncherForSession();
+  function suppressLauncher(refs) {
+    suppressLauncherForSession();
 
     if (refs && refs.root) {
       refs.root.classList.add('jrw-session-hidden');
     }
   }
 
-  function isMobileLauncherSuppressed() {
+  function isLauncherSuppressed() {
     try {
-      return window.sessionStorage.getItem(MOBILE_SUPPRESS_KEY) === '1';
+      return window.sessionStorage.getItem(LAUNCHER_SUPPRESS_KEY) === '1';
     } catch (error) {
       return false;
     }
   }
 
-  function suppressMobileLauncherForSession() {
+  function suppressLauncherForSession() {
     try {
-      window.sessionStorage.setItem(MOBILE_SUPPRESS_KEY, '1');
+      window.sessionStorage.setItem(LAUNCHER_SUPPRESS_KEY, '1');
     } catch (error) {
       // Ignore storage access issues.
     }
@@ -1110,16 +1105,7 @@
       return;
     }
 
-    if (!isMobileViewport() || isMobileAlwaysVisibleRoute()) {
-      root.classList.remove('jrw-session-hidden');
-      trackMountedWidgetVisible();
-      if (typeof activeWidgetRouteSync === 'function') {
-        activeWidgetRouteSync();
-      }
-      return;
-    }
-
-    if (isMobileLauncherSuppressed()) {
+    if (isLauncherSuppressed()) {
       root.classList.add('jrw-session-hidden');
     } else {
       root.classList.remove('jrw-session-hidden');
@@ -1175,10 +1161,6 @@
     return !!LAUNCH_CARD_ALLOWED_PATHS[getNormalizedPathname()];
   }
 
-  function isMobileAlwaysVisibleRoute() {
-    return isMobileViewport() && !!MOBILE_ALWAYS_VISIBLE_PATHS[getNormalizedPathname()];
-  }
-
   function getNormalizedPathname() {
     var pathname = '/';
 
@@ -1206,7 +1188,7 @@
   }
 
   function isMobileViewport() {
-    return window.matchMedia && window.matchMedia('(max-width: 480px)').matches;
+    return window.matchMedia && window.matchMedia(MOBILE_MEDIA_QUERY).matches;
   }
 
   if (document.readyState === 'loading') {

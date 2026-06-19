@@ -7,13 +7,12 @@ The widget renders as a persistent desktop referral pill and a compact mobile gi
 ## Current Behaviour
 
 - Desktop: persistent bottom-right referral pill, opening into a right-side drawer.
-- Mobile: launcher appears only on `/`, `/finance`, `/kitchen`, and `/settings`.
-- Mobile settings page: launcher remains visible after close, even if the user hid it elsewhere in the same session.
-- Other mobile pages: closing the widget hides the launcher for the current `sessionStorage` session.
+- Compact/mobile mode applies at `768px` or below and appears only on `/`, `/finance`, `/kitchen`, and `/settings`.
+- Closing the widget hides the launcher for the current `sessionStorage` session on every device and route.
 - HubSpot form loads lazily when the widget opens.
 - Widget funnel events are sent to a Cloudflare Pages Function backed by D1.
 - A one-time launch popup is suppressed per kitchen through a D1 state table.
-- The launch popup temporarily hides the launcher; dismissing it restores the persistent launcher.
+- The launch popup temporarily hides the launcher. Closing or dismissing it hides the launcher for the current session; its CTA opens the referral form.
 - No custom referral submission backend is used; HubSpot still handles referral submissions.
 - No external JS dependencies are bundled.
 

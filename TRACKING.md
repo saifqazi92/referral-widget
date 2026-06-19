@@ -98,10 +98,10 @@ Each event payload includes:
 | `kitchen_id` | Jelly kitchen ID from Apollo context. |
 | `kitchen_name` | Jelly kitchen name from Apollo context. |
 | `route` | Pathname only, with query strings and hashes removed. |
-| `device` | `mobile` when viewport is `max-width: 480px`; otherwise `desktop`. |
+| `device` | `mobile` when viewport is `max-width: 768px`; otherwise `desktop`. |
 | `viewport_width` | Browser viewport width. |
 | `viewport_height` | Browser viewport height. |
-| `widget_version` | Current code version string, currently `2026-06-15-launch-popup-desktop-pill`. |
+| `widget_version` | Current code version string, currently `2026-06-19-universal-close`. |
 | `script_url` | Resolved `referral.js` URL. |
 | `occurred_at` | Client-side ISO timestamp. |
 | `received_at` | Server-side D1 insert timestamp, added by the database. |

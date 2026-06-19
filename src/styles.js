@@ -742,7 +742,7 @@ var JRW_STYLES = `
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .jrw-launch-card {
     top: auto;
     left: 10px;
