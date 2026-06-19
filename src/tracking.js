@@ -1,7 +1,7 @@
 // Lightweight analytics client for the referral widget.
 // Sends only funnel metadata to the Cloudflare Pages Function; no PII or form values.
 
-var JRW_WIDGET_VERSION = '2026-06-19-universal-close';
+var JRW_WIDGET_VERSION = '2026-06-19-dismissible-desktop-pill';
 var JRW_TRACKING_SESSION_KEY = 'jrw_tracking_session_id';
 var JRW_TRACKING_ENDPOINT_PATH = '/api/referral-events';
 var JRW_LAUNCH_CARD_ENDPOINT_PATH = '/api/referral-launch-card-state';

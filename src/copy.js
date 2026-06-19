@@ -35,6 +35,7 @@ var JRW_COPY = {
   successCta: 'Send another referral',
 
   ariaOpenWidget: 'Open referral programme',
+  ariaDismissLauncher: 'Dismiss referral widget',
   ariaCloseDrawer: 'Close referral drawer',
   ariaCloseLaunchCard: 'Close referral programme announcement',
   ariaGiftIcon: 'Refer a kitchen',

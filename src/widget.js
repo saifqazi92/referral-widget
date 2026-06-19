@@ -189,6 +189,9 @@
       '        ' + SVG_GIFT,
       '        <span class="jrw-trigger-text">' + JRW_COPY.launcherPillText + '</span>',
       '      </button>',
+      '      <button class="jrw-pill-dismiss" type="button" data-ref="pillDismiss" aria-label="' + JRW_COPY.ariaDismissLauncher + '">',
+      '        ' + SVG_CLOSE,
+      '      </button>',
       '    </div>',
       '  </div>',
       '</div>',
@@ -211,6 +214,7 @@
       successBody: shadow.querySelector('[data-ref="successBody"]'),
       successBtn: shadow.querySelector('[data-ref="successBtn"]'),
       trigger: shadow.querySelector('[data-ref="trigger"]'),
+      pillDismiss: shadow.querySelector('[data-ref="pillDismiss"]'),
       root: shadow.querySelector('.jrw-root'),
     };
 
@@ -251,6 +255,17 @@
       openDrawer();
     }
 
+    function handlePillDismissClick(event) {
+      if (state.isDestroyed || isMobileViewport()) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      refs.pillDismiss.blur();
+      suppressLauncher(refs);
+    }
+
     function handleRetryClick() {
       loadForm(true);
     }
@@ -289,6 +304,7 @@
     }
 
     refs.trigger.addEventListener('click', handleTriggerClick);
+    refs.pillDismiss.addEventListener('click', handlePillDismissClick);
     refs.overlay.addEventListener('click', closeDrawer);
     refs.launchCardOverlay.addEventListener('click', handleLaunchCardClose);
     refs.launchCardClose.addEventListener('click', handleLaunchCardClose);
@@ -304,6 +320,7 @@
       state.isDestroyed = true;
       clearLaunchCardTimer();
       refs.trigger.removeEventListener('click', handleTriggerClick);
+      refs.pillDismiss.removeEventListener('click', handlePillDismissClick);
       refs.overlay.removeEventListener('click', closeDrawer);
       refs.launchCardOverlay.removeEventListener('click', handleLaunchCardClose);
       refs.launchCardClose.removeEventListener('click', handleLaunchCardClose);

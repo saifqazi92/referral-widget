@@ -254,6 +254,15 @@ var JRW_STYLES = `
 
 .jrw-trigger-wrap {
   position: relative;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--jrw-primary);
+  box-shadow: var(--jrw-shadow-icon);
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  animation: jrw-bounce 420ms ease-in-out 500ms both;
+  transition: transform 160ms ease, box-shadow 200ms ease;
 }
 
 .jrw-icon-btn {
@@ -263,34 +272,32 @@ var JRW_STYLES = `
   height: 52px;
   padding: 0 18px 0 16px;
   border: 0;
-  border-radius: 999px;
-  background: var(--jrw-primary);
+  border-radius: 999px 0 0 999px;
+  background: transparent;
   color: #FFFFFF;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: var(--jrw-shadow-icon);
+  box-shadow: none;
   font-family: 'Rubik', system-ui, sans-serif;
   font-size: 14px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.01em;
-  transition: transform 160ms ease, background 200ms ease, box-shadow 200ms ease;
-  animation: jrw-bounce 420ms ease-in-out 500ms both;
+  transition: background 160ms ease;
 }
 
 .jrw-icon-btn:hover,
 .jrw-icon-btn:focus-visible {
-  background: var(--jrw-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 22px 38px rgba(27, 43, 75, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.92);
   outline: none;
 }
 
 .jrw-icon-btn:active {
-  transform: translateY(0) scale(0.98);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .jrw-icon-btn svg {
@@ -303,6 +310,41 @@ var JRW_STYLES = `
 .jrw-trigger-text {
   display: inline-block;
   white-space: nowrap;
+}
+
+.jrw-pill-dismiss {
+  width: 44px;
+  min-width: 44px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0 999px 999px 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.jrw-pill-dismiss:hover,
+.jrw-pill-dismiss:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.92);
+  outline: none;
+}
+
+.jrw-pill-dismiss:active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.jrw-pill-dismiss svg {
+  width: 13px;
+  height: 13px;
+  display: block;
 }
 
 .jrw-icon-label {
@@ -830,7 +872,10 @@ var JRW_STYLES = `
   }
 
   .jrw-trigger-wrap {
-    width: auto;
+    width: 46px;
+    height: 46px;
+    box-shadow: 0 10px 22px rgba(27, 43, 75, 0.18);
+    animation: none;
   }
 
   .jrw-icon-btn {
@@ -840,9 +885,8 @@ var JRW_STYLES = `
     padding: 0;
     gap: 0;
     border-radius: 999px;
-    box-shadow: 0 10px 22px rgba(27, 43, 75, 0.18);
+    box-shadow: none;
     font-size: 0;
-    animation: none;
   }
 
   .jrw-icon-btn svg {
@@ -851,6 +895,10 @@ var JRW_STYLES = `
   }
 
   .jrw-trigger-text {
+    display: none;
+  }
+
+  .jrw-pill-dismiss {
     display: none;
   }
 
