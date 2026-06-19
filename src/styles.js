@@ -270,7 +270,7 @@ var JRW_STYLES = `
   width: auto;
   min-width: 0;
   height: 52px;
-  padding: 0 18px 0 16px;
+  padding: 0 24px 0 16px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -315,7 +315,7 @@ var JRW_STYLES = `
 .jrw-pill-dismiss {
   position: absolute;
   top: -8px;
-  right: -8px;
+  right: -14px;
   z-index: 2;
   width: 36px;
   min-width: 36px;
