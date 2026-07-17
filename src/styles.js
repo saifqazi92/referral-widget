@@ -305,6 +305,7 @@ var JRW_STYLES = `
   height: 20px;
   display: block;
   flex: 0 0 auto;
+  shape-rendering: geometricPrecision;
 }
 
 .jrw-trigger-text {
@@ -913,15 +914,16 @@ var JRW_STYLES = `
   }
 
   .jrw-trigger-wrap {
-    width: 46px;
-    height: 46px;
-    box-shadow: 0 10px 22px rgba(27, 43, 75, 0.18);
+    width: 48px;
+    height: 48px;
+    box-shadow: 0 8px 18px rgba(27, 43, 75, 0.16);
     animation: none;
+    transform: translateZ(0);
   }
 
   .jrw-icon-btn {
-    width: 46px;
-    height: 46px;
+    width: 48px;
+    height: 48px;
     min-height: 0;
     padding: 0;
     gap: 0;
@@ -931,8 +933,8 @@ var JRW_STYLES = `
   }
 
   .jrw-icon-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 
   .jrw-trigger-text {
