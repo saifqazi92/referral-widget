@@ -101,7 +101,7 @@ Each event payload includes:
 | `device` | `mobile` when viewport is `max-width: 768px`; otherwise `desktop`. |
 | `viewport_width` | Browser viewport width. |
 | `viewport_height` | Browser viewport height. |
-| `widget_version` | Current code version string, currently `2026-06-19-dismissible-desktop-pill`. |
+| `widget_version` | Current code version string, currently `2026-07-17-home-settings-persistent`. |
 | `script_url` | Resolved `referral.js` URL. |
 | `occurred_at` | Client-side ISO timestamp. |
 | `received_at` | Server-side D1 insert timestamp, added by the database. |

@@ -15,6 +15,10 @@
     '/kitchen': true,
     '/settings': true,
   };
+  var SESSION_VISIBLE_PATHS = {
+    '/': true,
+    '/settings': true,
+  };
   var LAUNCH_CARD_ALLOWED_PATHS = {
     '/': true,
     '/finance': true,
@@ -99,7 +103,7 @@
         return;
       }
 
-      if (isLauncherSuppressed()) {
+      if (isLauncherSuppressed() && !shouldShowLauncherWhenSuppressed()) {
         return;
       }
 
@@ -237,6 +241,7 @@
       isDestroyed: false,
     };
 
+    syncLauncherSuppressionState(refs);
     setupMobileLauncherReveal(refs, trackVisibleIfVisible);
     trackWidgetEvent('referral_widget_loaded');
     trackVisibleIfVisible();
@@ -1028,6 +1033,10 @@
       return;
     }
 
+    if (isLauncherSuppressed() && shouldShowLauncherWhenSuppressed()) {
+      return;
+    }
+
     refs.root.classList.add('jrw-mobile-pending');
 
     window.setTimeout(function () {
@@ -1041,10 +1050,7 @@
 
   function suppressLauncher(refs) {
     suppressLauncherForSession();
-
-    if (refs && refs.root) {
-      refs.root.classList.add('jrw-session-hidden');
-    }
+    syncLauncherSuppressionState(refs);
   }
 
   function isLauncherSuppressed() {
@@ -1122,10 +1128,9 @@
       return;
     }
 
-    if (isLauncherSuppressed()) {
-      root.classList.add('jrw-session-hidden');
-    } else {
-      root.classList.remove('jrw-session-hidden');
+    syncLauncherSuppressionState({ root: root });
+
+    if (!root.classList.contains('jrw-session-hidden')) {
       trackMountedWidgetVisible();
     }
 
@@ -1172,6 +1177,23 @@
 
   function isMobileRouteAllowed() {
     return !!MOBILE_ALLOWED_PATHS[getNormalizedPathname()];
+  }
+
+  function shouldShowLauncherWhenSuppressed() {
+    return !!SESSION_VISIBLE_PATHS[getNormalizedPathname()];
+  }
+
+  function syncLauncherSuppressionState(refs) {
+    var root = refs && refs.root;
+    var isSuppressed = isLauncherSuppressed();
+    var shouldStayVisible = isSuppressed && shouldShowLauncherWhenSuppressed();
+
+    if (!root) {
+      return;
+    }
+
+    root.classList.toggle('jrw-session-hidden', isSuppressed && !shouldStayVisible);
+    root.classList.toggle('jrw-suppressed-route-visible', shouldStayVisible);
   }
 
   function isLaunchCardRouteAllowed() {

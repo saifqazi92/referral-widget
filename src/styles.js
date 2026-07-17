@@ -372,6 +372,22 @@ var JRW_STYLES = `
   display: block;
 }
 
+.jrw-root.jrw-suppressed-route-visible .jrw-trigger-wrap {
+  width: 52px;
+}
+
+.jrw-root.jrw-suppressed-route-visible .jrw-icon-btn {
+  width: 52px;
+  padding: 0;
+  gap: 0;
+  font-size: 0;
+}
+
+.jrw-root.jrw-suppressed-route-visible .jrw-trigger-text,
+.jrw-root.jrw-suppressed-route-visible .jrw-pill-dismiss {
+  display: none;
+}
+
 .jrw-icon-label {
   display: none;
   position: absolute;

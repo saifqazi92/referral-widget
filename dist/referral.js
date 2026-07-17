@@ -431,6 +431,22 @@ var JRW_STYLES = `
   display: block;
 }
 
+.jrw-root.jrw-suppressed-route-visible .jrw-trigger-wrap {
+  width: 52px;
+}
+
+.jrw-root.jrw-suppressed-route-visible .jrw-icon-btn {
+  width: 52px;
+  padding: 0;
+  gap: 0;
+  font-size: 0;
+}
+
+.jrw-root.jrw-suppressed-route-visible .jrw-trigger-text,
+.jrw-root.jrw-suppressed-route-visible .jrw-pill-dismiss {
+  display: none;
+}
+
 .jrw-icon-label {
   display: none;
   position: absolute;
@@ -1687,7 +1703,7 @@ function applyHiddenFieldsToPageUrl(hiddenFields) {
 // Lightweight analytics client for the referral widget.
 // Sends only funnel metadata to the Cloudflare Pages Function; no PII or form values.
 
-var JRW_WIDGET_VERSION = '2026-06-19-dismissible-desktop-pill';
+var JRW_WIDGET_VERSION = '2026-07-17-home-settings-persistent';
 var JRW_TRACKING_SESSION_KEY = 'jrw_tracking_session_id';
 var JRW_TRACKING_ENDPOINT_PATH = '/api/referral-events';
 var JRW_LAUNCH_CARD_ENDPOINT_PATH = '/api/referral-launch-card-state';
@@ -1974,6 +1990,10 @@ var HOST_ID = 'jrw-widget-host';
     '/kitchen': true,
     '/settings': true,
   };
+  var SESSION_VISIBLE_PATHS = {
+    '/': true,
+    '/settings': true,
+  };
   var LAUNCH_CARD_ALLOWED_PATHS = {
     '/': true,
     '/finance': true,
@@ -2058,7 +2078,7 @@ var HOST_ID = 'jrw-widget-host';
         return;
       }
 
-      if (isLauncherSuppressed()) {
+      if (isLauncherSuppressed() && !shouldShowLauncherWhenSuppressed()) {
         return;
       }
 
@@ -2196,6 +2216,7 @@ var HOST_ID = 'jrw-widget-host';
       isDestroyed: false,
     };
 
+    syncLauncherSuppressionState(refs);
     setupMobileLauncherReveal(refs, trackVisibleIfVisible);
     trackWidgetEvent('referral_widget_loaded');
     trackVisibleIfVisible();
@@ -2987,6 +3008,10 @@ var HOST_ID = 'jrw-widget-host';
       return;
     }
 
+    if (isLauncherSuppressed() && shouldShowLauncherWhenSuppressed()) {
+      return;
+    }
+
     refs.root.classList.add('jrw-mobile-pending');
 
     window.setTimeout(function () {
@@ -3000,10 +3025,7 @@ var HOST_ID = 'jrw-widget-host';
 
   function suppressLauncher(refs) {
     suppressLauncherForSession();
-
-    if (refs && refs.root) {
-      refs.root.classList.add('jrw-session-hidden');
-    }
+    syncLauncherSuppressionState(refs);
   }
 
   function isLauncherSuppressed() {
@@ -3081,10 +3103,9 @@ var HOST_ID = 'jrw-widget-host';
       return;
     }
 
-    if (isLauncherSuppressed()) {
-      root.classList.add('jrw-session-hidden');
-    } else {
-      root.classList.remove('jrw-session-hidden');
+    syncLauncherSuppressionState({ root: root });
+
+    if (!root.classList.contains('jrw-session-hidden')) {
       trackMountedWidgetVisible();
     }
 
@@ -3131,6 +3152,23 @@ var HOST_ID = 'jrw-widget-host';
 
   function isMobileRouteAllowed() {
     return !!MOBILE_ALLOWED_PATHS[getNormalizedPathname()];
+  }
+
+  function shouldShowLauncherWhenSuppressed() {
+    return !!SESSION_VISIBLE_PATHS[getNormalizedPathname()];
+  }
+
+  function syncLauncherSuppressionState(refs) {
+    var root = refs && refs.root;
+    var isSuppressed = isLauncherSuppressed();
+    var shouldStayVisible = isSuppressed && shouldShowLauncherWhenSuppressed();
+
+    if (!root) {
+      return;
+    }
+
+    root.classList.toggle('jrw-session-hidden', isSuppressed && !shouldStayVisible);
+    root.classList.toggle('jrw-suppressed-route-visible', shouldStayVisible);
   }
 
   function isLaunchCardRouteAllowed() {

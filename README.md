@@ -8,7 +8,9 @@ The widget renders as a persistent desktop referral pill and a compact mobile gi
 
 - Desktop: persistent bottom-right referral pill, opening into a right-side drawer.
 - Compact/mobile mode applies at `768px` or below and appears only on `/`, `/finance`, `/kitchen`, and `/settings`.
-- Closing the widget hides the launcher for the current `sessionStorage` session on every device and route.
+- Closing the widget hides the launcher for the current `sessionStorage` session, except Home (`/`) and Settings (`/settings`) stay available as a quiet icon entrypoint.
+- Desktop Home and Settings collapse a suppressed launcher to a circular gift icon; other desktop routes remain hidden for the session.
+- Mobile Home and Settings keep the compact gift icon visible after closing; Finance and Kitchen keep the existing session-hide behaviour.
 - Desktop users can dismiss the closed pill directly with its right-hand `X`; mobile keeps the compact gift icon without a separate dismiss control.
 - HubSpot form loads lazily when the widget opens.
 - Widget funnel events are sent to a Cloudflare Pages Function backed by D1.
